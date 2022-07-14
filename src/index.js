@@ -128,7 +128,35 @@ function allocate(salesOrders, purchaseOrders) {
   return arrayFinalSales;
 }
  
-console.log(allocate(salesOrders, purchaseOrders));
+function getCells(data) {
+  let resultCells = Object.values(data);
+  return resultCells.map(cell => `<td>${cell}</td>`).join('');
+}
+
+function createBody(data) {
+  return data.map(row => `<tr>${getCells(row)}</tr>`).join('');
+}
+
+function createTable(data) {
+  // Destructure the headings (first row) from
+  // all the rows
+
+  // Return some HTML that uses `getCells` to create
+  // some headings, but also to create the rows
+  // in the tbody.
+  return `
+    <table>
+      <thead>
+        <tr>
+          <th>ID_purchase_order</th>
+          <th>Receiving</th>
+          <th>Quantity</th>
+        </tr>
+      </thead>
+      <tbody id="tbody">${createBody(data)}</tbody>
+    </table>
+  `;
+}
 
 document.getElementById("app").innerHTML = `
 <h1>Coding Exercise! Martín Lopez</h1>
@@ -142,13 +170,19 @@ We need to match the two.That is essentially all we’re looking for.
 
 The idea is to see if the candidate can understand the business problem, and can write a solution with readable concise code.
 </div>
+<h3>
+RESULT
+</h3>
 <p>
 By running the application in the console you will be able to see the step-by-step operation of the code's responses.
 </p>
-<h3>
-arrayFinalSales has the final data 
-</h3>
+<p>
+<b>arrayFinalSales</b> has the final data 
+</p>
 `;
+
+// Bang it altogether
+document.body.insertAdjacentHTML('beforeend', createTable(allocate(salesOrders, purchaseOrders)));
 
 // Sales Orders are orders created by a customer for us to provide a product
 
