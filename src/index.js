@@ -75,7 +75,7 @@ const purchaseOrders = [
 ];
 
 function allocate(salesOrders, purchaseOrders) {
-  let salesOrdersByStock = salesOrders.sort(function (a, b) {
+  let salesOrdersByClients = salesOrders.sort(function (a, b) {
     // sort array salesOrders by date.
     return new Date(a.created) - new Date(b.created);
   });
@@ -85,15 +85,61 @@ function allocate(salesOrders, purchaseOrders) {
     return new Date(a.receiving) - new Date(b.receiving);
   });
   let actualStock = 0;
+  let stockSaleOrder = 0;
+  let sendSale = null;
+  let sendSaleOrder = {}
+  let restStock = 0;
   let stockPurchaseOrders = 0;
-  let sumStockSales = 0;
+  let sumStock = 0;
   let resultFilterStockByOrderRecieving = [];
-  let orderArrayPurchaseOrders = purchaseOrdersByClients;
+  let orderArraySalesOrders = salesOrdersByClients;
   let arrayFinalSales = [];
   let arrayStock = [];
-  console.log("***** orderArrayPurchaseOrders", orderArrayPurchaseOrders);
-  console.log("***** salesOrdersByStock", salesOrdersByStock);
-  orderArrayPurchaseOrders.forEach((elementPurchaseOrders, index) => {
+
+  console.log("***** orderArraySalesOrders", orderArraySalesOrders);
+  console.log("***** purchaseOrdersByClients", purchaseOrdersByClients);
+  
+  // code corrections by moving arrays
+  orderArraySalesOrders.forEach((elementSalesOrders, index) => {
+    console.log(elementSalesOrders, "salesOrdersByClients ID " + index);
+    stockSaleOrder = elementSalesOrders.quantity;
+
+    resultFilterStockByOrderRecieving = purchaseOrdersByClients.filter(
+      (elementPurchase) =>
+        (new Date(elementPurchase.receiving) >=
+        new Date(elementSalesOrders.created))
+    );
+    console.log(resultFilterStockByOrderRecieving, "stock array");
+    resultFilterStockByOrderRecieving.forEach((elementPurchase) => {
+      actualStock = elementPurchase.quantity;
+      
+      if (arrayStock.length === 0 || !arrayStock.includes(actualStock)) {
+        arrayStock.push(actualStock);
+        sumStock = sumStock + actualStock;
+        
+        // I am adding the wrong date for each customer's sale shipping.
+        if (sumStock >= stockSaleOrder) {
+          sendSale = elementPurchase.receiving;
+        }
+      }
+    });
+    if (sumStock >= stockSaleOrder) {
+      sumStock = sumStock - stockSaleOrder;
+      sendSaleOrder = { IdSaleOrder: elementSalesOrders.id, sendSale: sendSale }
+      arrayFinalSales.push(sendSaleOrder);
+    }
+    console.log(
+      "the quantity of products in stock that I need to release this purchase order ",
+      stockSaleOrder
+    );
+    console.log(
+      "quantity of stock on hand at the time of purchase order ",
+      sumStock
+    );
+  });
+
+  // I got the arrays mixed up and did the exercise backwards.
+  /* orderArrayPurchaseOrders.forEach((elementPurchaseOrders, index) => {
     console.log(elementPurchaseOrders, "purchaseOrdersByClients ID " + index);
     stockPurchaseOrders = elementPurchaseOrders.quantity;
 
@@ -122,9 +168,11 @@ function allocate(salesOrders, purchaseOrders) {
       "quantity of stock on hand at the time of purchase order ",
       sumStockSales
     );
-  });
+  }); */
+  
+  console.log(orderArraySalesOrders, "orderArraySalesOrders ");
   console.log(arrayFinalSales, "arrayFinalSales ");
-  console.log(orderArrayPurchaseOrders, "orderArrayPurchaseOrders ");
+  
   return arrayFinalSales;
 }
  
@@ -150,7 +198,6 @@ function createTable(data) {
         <tr>
           <th>ID_purchase_order</th>
           <th>Receiving</th>
-          <th>Quantity</th>
         </tr>
       </thead>
       <tbody id="tbody">${createBody(data)}</tbody>
@@ -162,12 +209,13 @@ document.getElementById("app").innerHTML = `
 <h1>Coding Exercise! Martín Lopez</h1>
 <div>
 This is a FIFO problem. We have products arriving based on supply, and then sent to customers based on demand.
-
+<br>
 Demand is items going out to the customers.
+<br>
 Supply is items coming in from the vendors
- 
+<br>
 We need to match the two.That is essentially all we’re looking for.
-
+<br>
 The idea is to see if the candidate can understand the business problem, and can write a solution with readable concise code.
 </div>
 <h3>
